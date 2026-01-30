@@ -1,7 +1,12 @@
+import UserHeader from "../../components/user/UserHeader";
+import UserNavbar from "../../components/user/UserNavbar";
 import "./Contact.css";
 
 function Contact() {
   return (
+    <div>
+      <UserHeader/>
+      <UserNavbar/>
     <div className="contact-page">
       <div className="contact-card">
         <h2>Contact Us</h2>
@@ -33,6 +38,7 @@ function Contact() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 

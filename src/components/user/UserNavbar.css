@@ -4,7 +4,12 @@
   gap: 28px;
 
   padding: 14px 0;
-  background: #f2dce8;
+  background: linear-gradient(
+    135deg,
+    #fde2e4,
+    #ffeaf9,
+    #fad0c4
+  );
   border-bottom: 1px solid #f4f0f0;
 }
 

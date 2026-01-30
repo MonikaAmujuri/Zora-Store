@@ -250,3 +250,118 @@
   border-radius: 999px;
   font-weight: 600;
 }
+
+.dress-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 25px 0 40px;
+  flex-wrap: wrap;
+}
+
+.dress-tabs button {
+  padding: 10px 22px;
+  border-radius: 30px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dress-tabs button:hover,
+.dress-tabs button.active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+.subcategory-tabs {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0 30px;
+  flex-wrap: wrap;
+}
+
+.subcategory-tabs button {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.subcategory-tabs button:hover {
+  background: #f5f5f5;
+}
+
+.subcategory-tabs button.active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+.listing-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 30px;
+}
+
+.filter-sidebar {
+  background: linear-gradient(
+    to bottom,
+    #faf7f5 0%,
+    #fcf2f8 60%
+  );
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.filter-title {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.filter-section {
+  margin-bottom: 24px;
+}
+
+.filter-section h5 {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.color-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.color-dot.red { background: red; }
+.color-dot.blue { background: blue; }
+.color-dot.green { background: green; }
+.color-dot.black { background: black; }
+.color-dot.pink { background: pink; }
+.color-dot.white { background: white; }
+
+.clear-filter {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f5f5f5;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}

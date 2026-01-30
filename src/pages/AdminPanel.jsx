@@ -11,6 +11,10 @@ function AdminPanel() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [formError, setFormError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+
+
 
   const [form, setForm] = useState({
     name: "",
@@ -18,6 +22,8 @@ function AdminPanel() {
     desc: "",
     image: "",
     category: "pattu",
+    subCategory: "",
+    color:"",
     discount: 0,      // ✅ NEW
     stock: 10
   });
@@ -37,6 +43,13 @@ function AdminPanel() {
 
   /* -------------------- FILTER PRODUCTS -------------------- */
   let filteredProducts = [...products];
+  // 🔍 Search filter
+  if (searchTerm.trim() !== "") {
+    filteredProducts = filteredProducts.filter((p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
   // Products on Sale filter (from dashboard)
   if (filterType === "onsale") {
     filteredProducts = filteredProducts.filter(
@@ -76,14 +89,31 @@ function AdminPanel() {
       desc: "",
       image: "",
       category: "pattu",
+      subCategory: ""
     });
     setPreview(null);
     setEditingId(null);
     setShowForm(false);
   };
 
-  const handleSave = () => {
-    if (!form.name || !form.price) return;
+    const handleSave = () => {
+  setFormError("");
+
+      if (!form.name || !form.price) {
+        setFormError("Product name and price are required");
+        return;
+      }
+
+      // ✅ Dress sub-category validation
+      if (form.category === "dresses" && !form.subCategory) {
+        setFormError("Please select a dress type");
+        return;
+      }
+      // 👚 Crop tops validation
+      if (form.category === "croptops" && !form.subCategory) {
+        setFormError("Please select a crop top type");
+        return;
+      }
 
     let updated;
 
@@ -138,8 +168,9 @@ function AdminPanel() {
             <input
               type="text"
               placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
-
             <select
               value={categoryFilter || ""}
               onChange={(e) => {
@@ -177,7 +208,11 @@ function AdminPanel() {
       {showForm && (
         <div className="admin-card">
           <h3>{editingId ? "Edit Product" : "Add Product"}</h3>
-
+          {formError && (
+            <p className="form-error">
+              {formError}
+            </p>
+          )}
           <input
             placeholder="Product Name"
             value={form.name}
@@ -224,7 +259,6 @@ function AdminPanel() {
             <option value="croptops">Crop Tops</option>
           </select>
 
-
           <input
             type="file"
             onChange={(e) => {
@@ -244,6 +278,50 @@ function AdminPanel() {
 
             }}
           />
+          {/* SUB CATEGORY — ONLY FOR DRESSES */}
+          {form.category === "dresses" && (
+            <select
+              value={form.subCategory}
+              onChange={(e) =>
+                setForm({ ...form, subCategory: e.target.value })
+              }
+            >
+              <option value="">Select Dress Type</option>
+              <option value="long-frock">Long Frocks</option>
+              <option value="three-piece">3 Piece Set</option>
+              <option value="dress-material">Dress Materials</option>
+            </select>
+          )}
+
+          {/* 👚 Crop Tops Subcategory */}
+          {form.category === "croptops" && (
+            <select
+              value={form.subCategory}
+              onChange={(e) =>
+                setForm({ ...form, subCategory: e.target.value })
+              }
+            >
+              <option value="">Select Crop Top Type *</option>
+              <option value="half-sarees">Half Sarees</option>
+              <option value="chunnies">Chunnies</option>
+              <option value="readymade-blouses">Readymade Blouses</option>
+              <option value="leggings">Leggings</option>
+              <option value="western-wear">Western Wear</option>
+            </select>
+          )}
+
+          <select
+            value={form.color}
+            onChange={(e) => setForm({ ...form, color: e.target.value })}
+          >
+            <option value="">Select Color</option>
+            <option value="red">Red</option>
+            <option value="blue">Blue</option>
+            <option value="green">Green</option>
+            <option value="black">Black</option>
+            <option value="pink">Pink</option>
+            <option value="white">White</option>
+          </select>
 
           {preview && (
             <img src={preview} className="preview-img" />
@@ -300,6 +378,12 @@ function AdminPanel() {
                 )}
 
                 <small>{p.category}</small>
+                {p.subCategory && (
+                  <small className="subcategory">
+                    {p.subCategory.replace("-", " ")}
+                  </small>
+                )}
+
               </div>
 
               <div className="card-actions">

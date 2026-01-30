@@ -128,10 +128,10 @@ const totalSaved = totalOriginal - totalFinal;
               <span>₹ {total}</span>
             </div>
             <button
-            className="checkout-btn"
-            onClick={() => navigate("/address")}
+              onClick={() => navigate("/address")}
+              className="checkout-btn"
             >
-                Proceed to Checkout
+              Proceed to Checkout
             </button>
           </div>
         </>

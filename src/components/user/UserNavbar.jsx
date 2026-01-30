@@ -5,7 +5,7 @@ function UserNavbar() {
   return (
     <nav className="user-navbar">
       <Link to="/">Home</Link>
-      <Link to="/sarees">All Sarees</Link>
+      <Link to="/sarees">All Collection</Link>
       <Link to="/sarees/pattu">Pattu Sarees</Link>
       <Link to="/sarees/fancy">Fancy Sarees</Link>
       <Link to="/sarees/cotton">Cotton Sarees</Link>

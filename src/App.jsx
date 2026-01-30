@@ -14,6 +14,7 @@ import AdminProfile from "./pages/admin/AdminProfile";
 import AdminRoute from "./routes/AdminRoute";
 
 /* USER */
+import UserRoute from "./routes/UserRoute";
 import UserLayout from "./layouts/UserLayout";
 import Home from "./pages/user/Home";
 import Profile from "./pages/user/Profile";
@@ -50,8 +51,22 @@ function App() {
       <Route path="/products/all" element={<SareeListing />} />
       <Route path="/wishlist" element={<Wishlist />} />
       <Route path="/cart" element={<Cart />} />
-      <Route path="/address" element={<Address />} />
-      <Route path="/payment" element={<Payment />} />
+      <Route
+        path="/address"
+        element={
+          <UserRoute>
+            <Address />
+          </UserRoute>
+        }
+      />
+      <Route
+        path="/payment"
+        element={
+          <UserRoute>
+            <Payment />
+          </UserRoute>
+        }
+      />
       <Route path="/order-success" element={<OrderSuccess />} />
       <Route path="/order/:orderId" element={<OrderDetails />} />
       <Route path="/my-orders" element={<MyOrders />} />

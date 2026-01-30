@@ -63,10 +63,32 @@
 .toggle-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  font-size: 14px;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #f9f9f9;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
+
+.toggle-row:hover {
+  background: #f2f2f2;
+}
+
+.toggle-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #e63946; /* ZORA red */
+  cursor: pointer;
+}
+
+.toggle-row span {
+  font-size: 15px;
+  color: #333;
+  user-select: none;
+}
+
 
 /* Save button */
 .save-btn {

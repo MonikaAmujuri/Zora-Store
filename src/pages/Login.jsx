@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useNavigate, Link} from "react-router-dom";
 import { useAuth } from "../context/AdminContext";
 import "./Login.css";
@@ -11,23 +12,20 @@ function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
 
+    const location = useLocation();
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
         const userRole = login(email, password);
 
-        if (!userRole) {
-            setError("Invalid credentials");
-            return;
-        }
-
         if (userRole === "admin") {
             navigate("/admin/dashboard", { replace: true });
         } else {
-            navigate("/", { replace: true });
+            const redirectTo = location.state?.from || "/";
+            navigate(redirectTo, { replace: true });
         }
     };
-
 
 
     return (
