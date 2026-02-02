@@ -29,7 +29,7 @@ function SalesGraph({ orders }) {
           <Line
             type="monotone"
             dataKey="total"
-            stroke="#C9A15B"
+            stroke="#5d5bc9"
             strokeWidth={3}
             dot={{ r: 5 }}
             activeDot={{ r: 7 }}

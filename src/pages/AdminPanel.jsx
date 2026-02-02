@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
-import { getProducts, saveProducts } from "../utils/productStorage";
+import {
+  fetchProducts,
+  addProduct,
+  updateProduct,
+  deleteProduct
+} from "../services/productApi";
+
 import "./AdminPanel.css";
 
 function AdminPanel() {
@@ -18,7 +24,7 @@ function AdminPanel() {
 
   const [form, setForm] = useState({
     name: "",
-    price: "",
+    price: 0,
     desc: "",
     image: "",
     category: "pattu",
@@ -38,8 +44,19 @@ function AdminPanel() {
 
   /* -------------------- LOAD PRODUCTS -------------------- */
   useEffect(() => {
-    setProducts(getProducts());
-  }, []);
+  loadProducts();
+}, []);
+
+const loadProducts = async () => {
+  try {
+    const data = await fetchProducts();
+    setProducts(data);
+  } catch (err) {
+    console.error("Failed to load products", err);
+  }
+};
+
+
 
   /* -------------------- FILTER PRODUCTS -------------------- */
   let filteredProducts = [...products];
@@ -96,50 +113,45 @@ function AdminPanel() {
     setShowForm(false);
   };
 
-    const handleSave = () => {
-  setFormError("");
+    const handleSave = async () => {
+  if (!form.name || !form.price || !form.image || !form.category) {
+    alert("Please fill all required fields");
+    return;
+  }
 
-      if (!form.name || !form.price) {
-        setFormError("Product name and price are required");
-        return;
-      }
+  const payload = {
+    ...form,
+    price: Number(form.price),          // 🔥 FIX
+    discount: Number(form.discount || 0),
+    stock: Number(form.stock || 10),
+  };
 
-      // ✅ Dress sub-category validation
-      if (form.category === "dresses" && !form.subCategory) {
-        setFormError("Please select a dress type");
-        return;
-      }
-      // 👚 Crop tops validation
-      if (form.category === "croptops" && !form.subCategory) {
-        setFormError("Please select a crop top type");
-        return;
-      }
-
-    let updated;
-
+  try {
     if (editingId) {
-      updated = products.map((p) =>
-        p.id === editingId ? { ...p, ...form } : p
-      );
+      await updateProduct(editingId, payload);
     } else {
-      updated = [
-        ...products,
-        {
-          ...form,
-          id: Date.now(),
-          stock: 10,
-          reviews: [],
-          createdAt: new Date().toISOString() // ✅ REQUIRED
-        }
-      ];
-
+      await addProduct(payload);
     }
 
+    setShowForm(false);
+    setEditingId(null);
+    setForm({
+      name: "",
+      price: "",
+      desc: "",
+      image: "",
+      category: "pattu",
+      subCategory: "",
+      discount: 0,
+      stock: 10,
+    });
 
-    setProducts(updated);
-    saveProducts(updated);
-    resetForm();
-  };
+    fetchProducts(); // re-fetch products from MongoDB
+  } catch (err) {
+    console.error("Save failed", err);
+    alert("Failed to add product");
+  }
+};
 
 
   const handleEdit = (product) => {
@@ -149,12 +161,18 @@ function AdminPanel() {
     setShowForm(true);
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Delete this product?")) return;
-    const updated = products.filter((p) => p.id !== id);
-    setProducts(updated);
-    saveProducts(updated);
-  };
+  const handleDelete = async (id) => {
+  if (!window.confirm("Delete this product?")) return;
+
+  try {
+    await deleteProduct(id);
+    await loadProducts(); // 🔥 refresh
+  } catch (err) {
+    console.error("Delete failed", err);
+  }
+};
+
+
 
   /* -------------------- UI -------------------- */
   return (
@@ -197,10 +215,14 @@ function AdminPanel() {
 
           <button
             className="add-product-btn"
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              console.log("Add Product clicked");
+              setShowForm(true);
+            }}
           >
             + Add Product
           </button>
+
 
         </div>
       </div>
@@ -224,11 +246,13 @@ function AdminPanel() {
 
           <input
             placeholder="Price"
+            type="number"
             value={form.price}
             onChange={(e) =>
-              setForm({ ...form, price: Number(e.target.value) })
+              setForm({ ...form, price: Number(e.target.value) }) // ✅ number
             }
           />
+
           <input
             type="number"
             placeholder="Discount (%)"
@@ -360,7 +384,7 @@ function AdminPanel() {
 
 
           return (
-            <div className="admin-product-card" key={p.id}>
+            <div className="admin-product-card" key={p._id}>
               <img src={p.image} alt={p.name} />
 
               <div className="card-info">

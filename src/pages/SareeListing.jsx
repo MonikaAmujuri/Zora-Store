@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiHeart } from "react-icons/fi";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { getProducts } from "../utils/productStorage";
 import "./SareeListing.css";
+
+import { fetchProducts } from "../services/productApi";
+
+
 
 function SareeListing() {
   const { type } = useParams();
@@ -37,14 +40,14 @@ function SareeListing() {
       ? Math.round(product.price - (product.price * discount) / 100)
       : product.price;
 
-  const existing = cart.find(item => item.id === product.id);
+  const existing = cart.find(item => item.id === product._id);
 
   let updatedCart;
 
   if (existing) {
     updatedCart = cart.map(item =>
-      item.id === product.id
-        ? { ...item, qty: item.qty + (quantities[product.id] || 1) }
+      item.id === product._id
+        ? { ...item, qty: item.qty + (quantities[product._id] || 1) }
         : item
     );
   } else {
@@ -55,7 +58,7 @@ function SareeListing() {
         price: Number(product.price),
         discount,
         finalPrice,
-        qty: quantities[product.id] || 1,
+        qty: quantities[product._id] || 1,
       },
     ];
   }
@@ -88,8 +91,15 @@ function SareeListing() {
 
   /* LOAD PRODUCTS */
   useEffect(() => {
-    setProducts(getProducts());
-  }, []);
+  const loadProducts = async () => {
+    const data = await fetchProducts();
+    setProducts(data);
+  };
+
+  loadProducts();
+}, []);
+
+
 
   /* WISHLIST HELPERS */
   const isWishlisted = (id) =>
@@ -98,8 +108,8 @@ function SareeListing() {
   const toggleWishlist = (product) => {
     let updated;
 
-    if (isWishlisted(product.id)) {
-      updated = wishlist.filter((item) => item.id !== product.id);
+    if (isWishlisted(product._id)) {
+      updated = wishlist.filter((item) => item.id !== product._id);
     } else {
       updated = [...wishlist, product];
     }
@@ -322,17 +332,17 @@ if (type === "croptops" && croptopsFilter !== "all") {
 
       <div className="products-grid">
         {filteredProducts.map((p) => (
-          <div className="product-card" key={p.id}>
+          <div className="product-card" key={p._id}>
             {/* ❤️ Wishlist */}
             <button
-              className={`wishlist-btn ${isWishlisted(p.id) ? "active" : ""
+              className={`wishlist-btn ${isWishlisted(p._id) ? "active" : ""
                 }`}
               onClick={() => toggleWishlist(p)}
             >
               <FiHeart />
             </button>
             <Link
-              to={`/product/${p.id}`}
+              to={`/product/${p._id}`}
               className="product-link"
             >
             <img src={p.image} alt={p.name} />
@@ -364,20 +374,20 @@ if (type === "croptops" && croptopsFilter !== "all") {
                 )}
               </div>
               <div className="qty-control">
-                <button onClick={() => decreaseQty(p.id)}>-</button>
-                <span>{quantities[p.id] || 1}</span>
-                <button onClick={() => increaseQty(p.id)}>+</button>
+                <button onClick={() => decreaseQty(p._id)}>-</button>
+                <span>{quantities[p._id] || 1}</span>
+                <button onClick={() => increaseQty(p._id)}>+</button>
               </div>
 
               <button
-                className={`add-to-cart ${addedId === p.id ? "added" : ""}`}
+                className={`add-to-cart ${addedId === p._id ? "added" : ""}`}
                 onClick={() => {
-                  addToCart({ ...p, qty: quantities[p.id] || 1 });
-                  setAddedId(p.id);
+                  addToCart({ ...p, qty: quantities[p._id] || 1 });
+                  setAddedId(p._id);
                   setTimeout(() => setAddedId(null), 1500);
                 }}
               >
-                {addedId === p.id ? "✓ Added" : "Add to Cart"}
+                {addedId === p._id ? "✓ Added" : "Add to Cart"}
               </button>
               
 
