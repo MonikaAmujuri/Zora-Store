@@ -223,33 +223,30 @@
 .price-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 6px;
 }
 
-.price {
+.final-price {
+  font-size: 18px;
   font-weight: 600;
-  font-size: 16px;
+  color: #000;
 }
 
-.price.discounted {
-  color: #e11d48;
-  font-weight: 700;
-}
-
-.price.original {
-  text-decoration: line-through;
-  color: #9ca3af;
+.original-price {
   font-size: 14px;
+  text-decoration: line-through;
+  color: #999;
 }
 
 .discount-badge {
-  background: #fee2e2;
-  color: #dc2626;
+  background: #ffe5e8;
+  color: #d6002f;
   font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 600;
+  padding: 3px 6px;
+  border-radius: 6px;
 }
+
 
 .dress-tabs {
   display: flex;

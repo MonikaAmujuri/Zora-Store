@@ -190,3 +190,14 @@
 .green  { background: linear-gradient(135deg,#11998e,#38ef7d); }
 .violet { background: linear-gradient(135deg,#8e2de2,#4a00e0); }
 .orange { background: linear-gradient(135deg,#ff8008,#ffc837); }
+
+.dashboard-section-title {
+  margin: 30px 0 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.stat-card.yellow { background: #f0cf11; }
+.stat-card.green { background: #32f185; }
+.stat-card.blue { background: #237af5; }
+.stat-card.purple { background: #6114ef; }

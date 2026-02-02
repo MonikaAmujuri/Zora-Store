@@ -8,6 +8,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminReviews from "./pages/admin/AdminReviews";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminPanel from "./pages/AdminPanel";
 import AdminProfile from "./pages/admin/AdminProfile";
@@ -19,6 +20,7 @@ import UserLayout from "./layouts/UserLayout";
 import Home from "./pages/user/Home";
 import Profile from "./pages/user/Profile";
 import SareeListing from "./pages/SareeListing";
+import ProductDetails from "./pages/user/ProductDetails";
 import Wishlist from "./pages/user/Wishlist";
 import Cart from "./pages/user/Cart";
 import Address from "./pages/user/Address";
@@ -46,6 +48,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/sarees" element={<SareeListing />} />
         <Route path="sarees/:type" element={<SareeListing />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+
       </Route>
       <Route path="/products/:type" element={<SareeListing />} />
       <Route path="/products/all" element={<SareeListing />} />
@@ -92,6 +96,7 @@ function App() {
         <Route path="profile" element={<AdminProfile />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="orders" element={<AdminOrders />} />
+        <Route path="/admin/reviews" element={<AdminReviews />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
 

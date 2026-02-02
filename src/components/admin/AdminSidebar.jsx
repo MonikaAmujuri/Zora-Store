@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { FiMenu, FiGrid, FiBox, FiUser, FiShoppingBag, FiSettings } from "react-icons/fi";
+import { FiMenu, FiGrid, FiBox, FiUser, FiShoppingBag,  FiSettings, FiStar } from "react-icons/fi";
 import "./AdminSidebar.css";
 
 function AdminSidebar({ collapsed, toggleSidebar }) {
@@ -52,6 +52,15 @@ function AdminSidebar({ collapsed, toggleSidebar }) {
           <FiShoppingBag />
           {!collapsed && <span>Orders</span>}
         </Link>
+
+        
+          <Link to="/admin/reviews"
+          className={pathname.includes("reviews") ? "active" : ""}
+          >
+            <FiStar/>
+            {!collapsed && <span>Reviews</span>}
+          </Link>
+       
 
         <Link
           to="/admin/settings"

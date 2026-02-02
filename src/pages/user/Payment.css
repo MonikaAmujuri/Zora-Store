@@ -79,3 +79,26 @@
     padding: 18px;
   }
 }
+.upi-box {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f9f9f9;
+  text-align: center;
+}
+
+.upi-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.upi-qr {
+  width: 180px;
+  height: auto;
+  margin: 10px auto;
+}
+
+.upi-note {
+  font-size: 14px;
+  color: #555;
+}

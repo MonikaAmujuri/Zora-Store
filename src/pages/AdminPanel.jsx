@@ -128,6 +128,7 @@ function AdminPanel() {
           ...form,
           id: Date.now(),
           stock: 10,
+          reviews: [],
           createdAt: new Date().toISOString() // ✅ REQUIRED
         }
       ];

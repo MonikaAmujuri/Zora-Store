@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProducts } from "../../utils/productStorage";
+import SalesGraph from "../../components/admin/SalesGraph";
 import "./AdminDashboard.css";
+
 
 function AdminDashboard() {
   const [products, setProducts] = useState([]);
@@ -83,6 +85,7 @@ function AdminDashboard() {
           <p>Products on Sale</p>
           <h2>{productsOnSale}</h2>
         </div>
+        
 
 
 
@@ -122,6 +125,8 @@ function AdminDashboard() {
           </table>
         )}
       </div>
+      <SalesGraph orders={orders} />
+      
       {/* ================= OUT OF STOCK TABLE ================= */}
       <div className="dashboard-card danger-card">
         <div className="table-header">

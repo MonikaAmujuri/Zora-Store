@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import CheckoutSteps from "../../components/user/CheckoutSteps";
 import "./Payment.css";
 
@@ -7,6 +8,19 @@ function Payment() {
 
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
   const address = JSON.parse(localStorage.getItem("selectedAddress"));
+  const [selectedPayment, setSelectedPayment] = useState("");
+
+
+  const adminSettings = JSON.parse(
+  localStorage.getItem("adminSettings")
+);
+
+const payments = adminSettings?.payments || {
+  cod: false,
+  upi: false,
+  card: false,
+};
+
 
   /* TOTAL CALCULATION */
   const total = cart.reduce(
@@ -19,6 +33,11 @@ function Payment() {
   const placeOrder = () => {
     if (!address || cart.length === 0) {
       alert("Missing address or cart");
+      if (!selectedPayment) {
+  alert("Please select a payment method");
+  return;
+}
+
       return;
     }
 
@@ -28,7 +47,7 @@ function Payment() {
       address,
       total,
       status: "Pending",
-      date: new Date().toLocaleDateString(),
+      createdAt: new Date().toISOString(),
     };
 
     /* USER ORDERS */
@@ -74,10 +93,70 @@ function Payment() {
 
       {/* PAYMENT METHOD */}
       <div className="summary-card">
-        <h3>Payment Method</h3>
-        <label>
-          <input type="radio" checked readOnly /> Cash on Delivery
-        </label>
+        <h3>Select Payment Method</h3>
+        <div className="payment-methods"></div>
+        {payments.cod && (
+          <label className="payment-option">
+            <input
+              type="radio"
+              name="payment"
+              value="cod"
+              checked={selectedPayment === "cod"}
+              onChange={() => setSelectedPayment("cod")}
+            />
+            Cash on Delivery
+          </label>
+        )}
+
+        {payments.upi && (
+          <label className="payment-option">
+            <input
+              type="radio"
+              name="payment"
+              value="upi"
+              checked={selectedPayment === "upi"}
+              onChange={() => setSelectedPayment("upi")}
+            />
+            UPI Payment
+          </label>
+        )}
+
+        {payments.card && (
+          <label className="payment-option">
+            <input
+              type="radio"
+              name="payment"
+              value="card"
+              checked={selectedPayment === "card"}
+              onChange={() => setSelectedPayment("card")}
+            />
+            Credit / Debit Card
+          </label>
+        )}
+
+        {selectedPayment === "upi" && (
+  <div className="upi-box">
+    <p className="upi-title">Scan & Pay via UPI</p>
+
+    <img
+      src="/upi-qr.png"
+      alt="UPI QR Code"
+      className="upi-qr"
+    />
+
+    <p className="upi-note">
+      Use Google Pay / PhonePe / Paytm
+    </p>
+  </div>
+)}
+
+
+  {/* If no payment enabled */}
+  {!payments.cod && !payments.upi && !payments.card && (
+    <p className="no-payment">
+      ⚠️ No payment methods available. Please contact support.
+    </p>
+  )}
       </div>
 
       <button className="place-order-btn" onClick={placeOrder}>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { FiHeart } from "react-icons/fi";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { getProducts } from "../utils/productStorage";
@@ -330,45 +331,37 @@ if (type === "croptops" && croptopsFilter !== "all") {
             >
               <FiHeart />
             </button>
-
+            <Link
+              to={`/product/${p.id}`}
+              className="product-link"
+            >
             <img src={p.image} alt={p.name} />
-
+            </Link>
             <div className="product-info">
               <h4>{p.name}</h4>
               <p>{p.desc}</p>
+            
 
               <div className="price-row">
-                <div className="price-row">
-                  {p.discount > 0 ? (
-                    <>
-                      <span className="price discounted">
-                        ₹ {p.discountedPrice}
-                      </span>
+                {p.discount > 0 ? (
+                  <>
+                    <span className="final-price">
+                      ₹ {getFinalPrice(p.price, p.discount)}
+                    </span>
 
-                      <span className="price original">
-                        ₹ {p.price}
-                      </span>
+                    <span className="original-price">
+                      ₹ {p.price}
+                    </span>
 
-                      <span className="discount-badge">
-                        {p.discount}% OFF
-                      </span>
-                    </>
-                  ) : (
-                    <div className="price-row">
-                        <span className="price">₹ {getFinalPrice(p.price, p.discount)}</span>
-
-                        {p.discount > 0 && (
-                          <>
-                            <span className="original-price">₹ {p.price}</span>
-                            <span className="discount">{p.discount}% OFF</span>
-                          </>
-                        )}
-                      </div>
-
-                  )}
-                </div>
-
-                
+                    <span className="discount-badge">
+                      {p.discount}% OFF
+                    </span>
+                  </>
+                ) : (
+                  <span className="final-price">
+                    ₹ {p.price}
+                  </span>
+                )}
               </div>
               <div className="qty-control">
                 <button onClick={() => decreaseQty(p.id)}>-</button>
@@ -386,12 +379,15 @@ if (type === "croptops" && croptopsFilter !== "all") {
               >
                 {addedId === p.id ? "✓ Added" : "Add to Cart"}
               </button>
+              
 
 
             </div>
           </div>
         ))}
+       
       </div>
+      
       </section>
 
             </div>

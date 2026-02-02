@@ -66,7 +66,14 @@ function AdminOrders() {
                 </td>
 
                 <td>
-                  {new Date(order.createdAt).toLocaleDateString()}
+                  {order.createdAt
+                    ? new Date(order.createdAt).toLocaleDateString("en-IN")
+                    : "—"}
+                </td>
+                <td>
+                  {order.createdAt
+                    ? new Date(order.createdAt).toLocaleString("en-IN")
+                    : "—"}
                 </td>
 
                 <td>
