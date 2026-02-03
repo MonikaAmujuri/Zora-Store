@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate, Link} from "react-router-dom";
 import { useAuth } from "../context/AdminContext";
+import { loginUser } from "../services/authApi";
+
 import "./Login.css";
 
 function Login() {
@@ -14,16 +16,30 @@ function Login() {
 
     const location = useLocation();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const userRole = login(email, password);
+        const res = await fetch("http://localhost:5000/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
 
-        if (userRole === "admin") {
-            navigate("/admin/dashboard", { replace: true });
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message);
+            return;
+        }
+
+        // ✅ Save user
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        // ✅ Navigate based on role
+        if (data.user.role === "admin") {
+            navigate("/admin/dashboard");
         } else {
-            const redirectTo = location.state?.from || "/";
-            navigate(redirectTo, { replace: true });
+            navigate("/");
         }
     };
 

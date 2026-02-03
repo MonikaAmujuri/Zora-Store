@@ -22,7 +22,7 @@ function ProductDetails() {
   /* LOAD PRODUCT */
   useEffect(() => {
     const products = getProducts();
-    const found = products.find((p) => String(p.id) === id);
+    const found = products.find((p) => String(p._id) === id);
     setProduct(found);
   }, [id]);
 
@@ -49,7 +49,7 @@ function ProductDetails() {
   const addToCart = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    const existing = cart.find((item) => item.id === product.id);
+    const existing = cart.find((item) => item.id === product._id);
 
     let updated;
     if (existing) {

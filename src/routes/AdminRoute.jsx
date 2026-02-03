@@ -1,13 +1,9 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AdminContext";
 
 function AdminRoute({ children }) {
-  const { role } = useAuth();
+  const user = JSON.parse(localStorage.getItem("user"));
 
-  // 🔐 fallback for page refresh / redirect timing
-  const storedRole = role || localStorage.getItem("role");
-
-  if (storedRole !== "admin") {
+  if (!user || user.role !== "admin") {
     return <Navigate to="/login" replace />;
   }
 

@@ -157,7 +157,7 @@ const loadProducts = async () => {
   const handleEdit = (product) => {
     setForm(product);
     setPreview(product.image);
-    setEditingId(product.id);
+    setEditingId(product._id);
     setShowForm(true);
   };
 
@@ -166,12 +166,12 @@ const loadProducts = async () => {
 
   try {
     await deleteProduct(id);
-    await loadProducts(); // 🔥 refresh
+    fetchProducts();
   } catch (err) {
     console.error("Delete failed", err);
+    alert("Failed to delete product");
   }
 };
-
 
 
   /* -------------------- UI -------------------- */
@@ -415,7 +415,7 @@ const loadProducts = async () => {
                 <button onClick={() => handleEdit(p)}>Edit</button>
                 <button
                   className="danger"
-                  onClick={() => handleDelete(p.id)}
+                  onClick={() => handleDelete(p._id)}
                 >
                   Delete
                 </button>

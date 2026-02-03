@@ -5,16 +5,22 @@ import { useAuth } from "../../context/AdminContext";
 import "./UserHeader.css";
 
 function UserHeader() {
-  const { role, logout } = useAuth();
+  
   const [open, setOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-
-
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role;
+  const token = localStorage.getItem("token");
+  const logout = () => {
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  navigate("/");
+};
+  
   const navigate = useNavigate();
 
   const handleSearch = (value) => {
@@ -108,47 +114,52 @@ function UserHeader() {
 
         <div className="header-actions">
 
-  {role === "user" ? (
-    <div
-      className="account-wrapper"
-      onMouseLeave={() => setOpen(true)}
-    >
-      <button
-        className="account-btn"
-        onClick={() => setOpen(!open)}
-      >
-        <FiUser />
-        <FiChevronDown />
-      </button>
+          {user ? (
+            <div
+              className="account-wrapper"
+              onMouseLeave={() => setOpen(true)}
+            >
+              <button
+                className="account-btn"
+                onClick={() => setOpen(!open)}
+              >
+                <FiUser />
+                <FiChevronDown />
+              </button>
 
-      {open && (
-        <div className="account-dropdown">
-          <p className="user-email">{user?.email}</p>
+              {open && (
+                <div className="account-dropdown">
+                  <p className="user-email">{user.email}</p>
 
-          <Link to="/my-orders">My Orders</Link>
-          <Link to="/profile">My Profile</Link>
+                  {/* USER LINKS */}
+                  {user.role === "user" && (
+                    <>
+                      <Link to="/my-orders">My Orders</Link>
+                      <Link to="/profile">My Profile</Link>
+                    </>
+                  )}
 
-          <button
-            className="logout-btn"
-            onClick={() => {
-              logout();
-              window.location.href = "/";
-            }}
-          >
-            Logout
-          </button>
+                  {/* ADMIN LINK */}
+                  {user.role === "admin" && (
+                    <Link to="/admin/dashboard">Admin Dashboard</Link>
+                  )}
+
+                  <button
+                    className="logout-btn"
+                    onClick={logout}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link to="/login" className="login-btn">
+              Login
+            </Link>
+          )}
+
         </div>
-      )}
-    </div>
-  ) : (
-    <Link to="/login" className="login-btn">
-      Login
-    </Link>
-  )}
-
-</div>
-
-
       </div>
     </header>
   );

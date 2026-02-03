@@ -4,6 +4,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 
 import productRoutes from "./routes/productRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+
 
 dotenv.config();
 
@@ -20,6 +23,10 @@ app.get("/", (req, res) => {
 
 /* PRODUCT ROUTES */
 app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/auth", authRoutes);
+
+
 
 /* DB CONNECT */
 mongoose
@@ -27,7 +34,7 @@ mongoose
   .then(() => {
     console.log("MongoDB connected");
     app.listen(process.env.PORT || 5000, () => {
-      console.log(`Server running on port `);
+      console.log(`Server running on port 5000 `);
     });
   })
   .catch((err) => {

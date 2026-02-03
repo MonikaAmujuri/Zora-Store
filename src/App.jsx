@@ -72,7 +72,7 @@ function App() {
         }
       />
       <Route path="/order-success" element={<OrderSuccess />} />
-      <Route path="/order/:orderId" element={<OrderDetails />} />
+      <Route path="/order/:id" element={<OrderDetails />} />
       <Route path="/my-orders" element={<MyOrders />} />
       <Route path="/video-shopping" element={<VideoShopping />} />
       <Route path="/contact" element={<Contact />} />

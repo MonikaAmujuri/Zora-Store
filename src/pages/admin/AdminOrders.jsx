@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
+import { fetchAllOrders, updateOrderStatus } from "../../services/orderApi";
 import "./AdminOrders.css";
 
 function AdminOrders() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
-    setOrders(storedOrders);
+    fetchAllOrders().then(setOrders);
   }, []);
-
   const updateStatus = (id, newStatus) => {
     const updated = orders.map(o =>
       o.id === id ? { ...o, status: newStatus } : o
@@ -16,6 +15,16 @@ function AdminOrders() {
     setOrders(updated);
     localStorage.setItem("orders", JSON.stringify(updated));
   };
+  const updateOrderStatus = async (orderId, status) => {
+  await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
+  });
+};
+
 
   return (
     <div className="orders-page">
@@ -45,8 +54,8 @@ function AdminOrders() {
             )}
 
             {orders.map(order => (
-              <tr key={order.id}>
-                <td>#{order.id}</td>
+              <tr key={order._id}>
+                <td>#{order._id}</td>
                 <td>{order.userEmail}</td>
 
                 <td className="items-cell">
@@ -79,14 +88,16 @@ function AdminOrders() {
                 <td>
                   <select
                     value={order.status}
-                    onChange={(e) =>
-                      updateStatus(order.id, e.target.value)
-                    }
-                    className="status-select"
+                    onChange={async (e) => {
+                      const newStatus = e.target.value;
+                      await updateOrderStatus(order._id, newStatus);
+                      fetchAllOrders(); // reload list
+                    }}
                   >
-                    <option value="pending">Pending</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
                   </select>
                 </td>
               </tr>

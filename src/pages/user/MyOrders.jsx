@@ -1,33 +1,27 @@
 import { useEffect, useState } from "react";
+import { fetchUserOrders } from "../../services/orderApi";
 import { Link } from "react-router-dom";
 import UserHeader from "../../components/user/UserHeader";
 import "./MyOrders.css";
 
 function MyOrders() {
     const [orders, setOrders] = useState([]);
+    const user = JSON.parse(localStorage.getItem("loggedUser"));
 
     useEffect(() => {
-        const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
-
-        // 🔐 later you can filter by logged-in user email
-        setOrders(storedOrders.reverse());
+        fetchUserOrders(user.email).then(setOrders);
     }, []);
 
-    const cancelOrder = (orderId) => {
-        const confirmCancel = window.confirm(
-            "Are you sure you want to cancel this order?"
-        );
+    const cancelOrder = async (orderId) => {
+        await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: "Cancelled" }),
+        });
 
-        if (!confirmCancel) return;
-
-        const updatedOrders = orders.map((order) =>
-            order.id === orderId
-                ? { ...order, status: "Cancelled" }
-                : order
-        );
-
-        setOrders(updatedOrders);
-        localStorage.setItem("orders", JSON.stringify(updatedOrders));
+        fetchUserOrders(); // refresh list
     };
 
 
@@ -52,9 +46,9 @@ function MyOrders() {
       ) : (
                 <div className="orders-list">
                     {orders.map((order) => (
-                        <div className="order-card" key={order.id}>
+                        <div className="order-card" key={order._id}>
                             <div className="order-left">
-                                <p className="order-id">Order #{order.id}</p>
+                                <p className="order-id">Order #{order._id}</p>
                                 <p className="order-date">
                                     {new Date(order.createdAt).toLocaleDateString()}
                                 </p>
@@ -68,16 +62,15 @@ function MyOrders() {
                             </div>
 
                             <div className="order-right">
-                                <Link to={`/order/${order.id}`} className="view-btn">
+                                <Link to={`/order/${order._id}`} className="view-btn">
                                     View Details →
                                 </Link>
-
                                 {order.status === "Pending" && (
                                     <button
                                         className="cancel-btn"
-                                        onClick={() => cancelOrder(order.id)}
+                                        onClick={() => cancelOrder(order._id)}
                                     >
-                                        Cancel
+                                        Cancel Order
                                     </button>
                                 )}
                             </div>

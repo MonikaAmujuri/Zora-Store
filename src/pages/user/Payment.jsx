@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import CheckoutSteps from "../../components/user/CheckoutSteps";
+import { createOrder } from "../../services/orderApi";
 import "./Payment.css";
 
 function Payment() {
@@ -30,40 +31,42 @@ const payments = adminSettings?.payments || {
 
 
   /* PLACE ORDER */
-  const placeOrder = () => {
-    if (!address || cart.length === 0) {
-      alert("Missing address or cart");
-      if (!selectedPayment) {
-  alert("Please select a payment method");
-  return;
-}
 
-      return;
-    }
+const placeOrder = async () => {
+  if (!address || cart.length === 0) {
+    alert("Missing address or cart");
+    return;
+  }
 
-    const newOrder = {
-      id: Date.now(),
-      items: cart,
-      address,
-      total,
-      status: "Pending",
-      createdAt: new Date().toISOString(),
-    };
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
 
-    /* USER ORDERS */
-    const userOrders = JSON.parse(localStorage.getItem("orders")) || [];
-    localStorage.setItem("orders", JSON.stringify([...userOrders, newOrder]));
+  const newOrder = {
+    userEmail: user.email,
+    items: cart.map(item => ({
+      productId: item._id,
+      name: item.name,
+      image: item.image,
+      price: item.price,
+      finalPrice: item.finalPrice,
+      discount: item.discount,
+      qty: item.qty,
+    })),
+    address,
+    total,
+    paymentMethod: "COD",
+  };
 
-    /* ADMIN ORDERS */
-    const adminOrders = JSON.parse(localStorage.getItem("adminOrders")) || [];
-    localStorage.setItem("adminOrders", JSON.stringify([...adminOrders, newOrder]));
+  try {
+    const savedOrder = await createOrder(newOrder);
 
-    /* CLEAR CART */
     localStorage.removeItem("cart");
     window.dispatchEvent(new Event("cartUpdated"));
 
     navigate("/order-success");
-  };
+  } catch (err) {
+    alert("Order failed");
+  }
+};
 
   return (
     <div className="payment-page">
@@ -83,7 +86,7 @@ const payments = adminSettings?.payments || {
       <div className="summary-card">
         <h3>Order Summary</h3>
         {cart.map(item => (
-          <p key={item.id}>
+          <p key={item._id}>
             {item.name} × {item.qty} — ₹ {item.price * item.qty}
           </p>
         ))}
