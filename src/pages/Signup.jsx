@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./Login.css"; // reuse same styles
+import { useAuth } from "../context/AuthContext";
+import "./Login.css"; // reuse login styles
 
 function Signup() {
   const [name, setName] = useState("");
@@ -10,42 +11,48 @@ function Signup() {
 
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
-    e.preventDefault();
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // ❌ Prevent duplicate email
-    if (users.find((u) => u.email === email)) {
-      setError("User already exists");
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Signup failed");
       return;
     }
 
-    const newUser = {
-      id: Date.now(),
-      name,
-      email,
-      password
-    };
+    // auto-login after signup
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
 
-    localStorage.setItem(
-      "users",
-      JSON.stringify([...users, newUser])
-    );
-
-    navigate("/login");
-  };
+    navigate("/");
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+};
 
   return (
     <div className="login-page">
-      <form className="login-card" onSubmit={handleSignup}>
-        <h2>Create Account</h2>
+      <form className="login-card" onSubmit={handleSubmit}>
+        <h1 className="brand">ZORA</h1>
+        <p className="subtitle">Create your account ✨</p>
+
+        <h2>Sign Up</h2>
 
         {error && <p className="error">{error}</p>}
 
         <input
           type="text"
-          placeholder="Full Name"
+          placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -67,7 +74,7 @@ function Signup() {
           required
         />
 
-        <button type="submit">Sign Up</button>
+        <button type="submit">Create Account</button>
 
         <p className="switch-auth">
           Already have an account? <Link to="/login">Login</Link>

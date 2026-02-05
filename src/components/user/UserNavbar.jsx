@@ -3,8 +3,6 @@ import "./UserNavbar.css";
 
 function UserNavbar() {
 
-const user = JSON.parse(localStorage.getItem("user"));
-
   return (
     <nav className="user-navbar">
       <Link to="/">Home</Link>

@@ -2,16 +2,28 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UserHeader from "../../components/user/UserHeader";
 import CheckoutSteps from "../../components/user/CheckoutSteps";
+import { useAuth } from "../../context/AuthContext";
+import { useLocation } from "react-router-dom";
 import "./Cart.css";
 
 function Cart() {
+  const { user, loading } = useAuth();
   const [cart, setCart] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(stored);
-  }, []);
+useEffect(() => {
+  if (!user?._id) return;
+
+  fetch(`http://localhost:5000/api/cart/${user._id}`)
+    .then(res => res.json())
+    .then(data => {
+      setCart(data.items || []);
+    });
+}, [user, location.pathname]); // 🔥 IMPORTANT
+
+  if (loading) return null;
+  if (!user) return null; // or redirect to login
 
 const totalOriginal = cart.reduce(
   (sum, item) => sum + item.price * item.qty,
@@ -32,22 +44,35 @@ const totalSaved = totalOriginal - totalFinal;
 );
 
 
-  const updateQty = (id, qty) => {
-    const updated = cart.map(item =>
-      item.id === id ? { ...item, qty } : item
-    );
-    setCart(updated);
-    localStorage.setItem("cart", JSON.stringify(updated));
-    window.dispatchEvent(new Event("cartUpdated"));
-  };
+  const updateQty = async (productId, qty) => {
+  await fetch("http://localhost:5000/api/cart/update", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: user._id,
+      productId,
+      quantity: qty,
+    }),
+  });
 
-  const removeItem = (id) => {
-    const updated = cart.filter(item => item.id !== id);
-    setCart(updated);
-    localStorage.setItem("cart", JSON.stringify(updated));
-    window.dispatchEvent(new Event("cartUpdated"));
-  };
+  setCart(prev =>
+    prev.map(item =>
+      item.id === productId ? { ...item, qty } : item
+    )
+  );
+};
+  const removeItem = async (productId) => {
+  await fetch("http://localhost:5000/api/cart/remove", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: user._id,
+      productId,
+    }),
+  });
 
+  setCart(prev => prev.filter(item => item.id !== productId));
+};
 
   return (
     <div>

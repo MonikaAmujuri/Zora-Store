@@ -1,36 +1,51 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AdminContext";
+import { useNavigate, Navigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./Profile.css";
 
 function Profile() {
-  const { logout } = useAuth();
+  const { user, loading, logout, updateUser } = useAuth();
   const navigate = useNavigate();
 
-  const storedUser = JSON.parse(localStorage.getItem("loggedUser"));
 
-  const [name, setName] = useState(storedUser?.name || "");
+  const [name, setName] = useState(user?.name || "");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleSave = () => {
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+  if (loading) return <p>Loading...</p>;
+  if (!user) return <Navigate to="/login" />;
 
-    const updatedUsers = users.map((u) =>
-      u.email === storedUser.email
-        ? { ...u, name, password: password || u.password }
-        : u
+  const handleSave = async () => {
+  try {
+    const res = await fetch(
+      "http://localhost:5000/api/users/update-profile",
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user._id,
+          name,
+          password,
+        }),
+      }
     );
 
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-    localStorage.setItem(
-      "loggedUser",
-      JSON.stringify({ ...storedUser, name })
-    );
+    const data = await res.json();
 
-    setMessage("Profile updated successfully");
-    setPassword("");
-  };
+    if (res.ok) {
+      setMessage("Profile updated successfully");
+
+      // ✅ THIS IS THE KEY LINE
+      updateUser(data.user);
+
+      setPassword("");
+    } else {
+      setMessage(data.message || "Update failed");
+    }
+  } catch (error) {
+    setMessage("Something went wrong");
+  }
+};
 
   return (
     <div className="profile-page">
@@ -47,7 +62,7 @@ function Profile() {
         />
 
         <label>Email</label>
-        <input type="email" value={storedUser.email} disabled />
+        <input type="email" value={user.email} disabled />
 
         <label>New Password</label>
         <input

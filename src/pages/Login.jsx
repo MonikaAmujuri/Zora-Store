@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate, Link} from "react-router-dom";
-import { useAuth } from "../context/AdminContext";
-import { loginUser } from "../services/authApi";
+import { useAuth } from "../context/AuthContext";
 
 import "./Login.css";
 
@@ -11,38 +10,44 @@ function Login() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    const { login } = useAuth();
     const navigate = useNavigate();
 
     const location = useLocation();
+    const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
 
-        const res = await fetch("http://localhost:5000/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-        });
+        try {
+            const res = await fetch("http://localhost:5000/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
 
-        const data = await res.json();
+            const data = await res.json();
 
-        if (!res.ok) {
-            alert(data.message);
-            return;
-        }
+            if (!res.ok) {
+                setError(data.message || "Invalid credentials");
+                return;
+            }
 
-        // ✅ Save user
-        localStorage.setItem("user", JSON.stringify(data.user));
+            // ✅ IMPORTANT: go through AuthContext
+            login(data.user, data.token);
 
-        // ✅ Navigate based on role
-        if (data.user.role === "admin") {
-            navigate("/admin/dashboard");
-        } else {
-            navigate("/");
+            // ✅ redirect based on role
+            if (data.user.role === "admin") {
+                navigate("/admin/dashboard", { replace: true });
+            } else {
+                const redirectTo = location.state?.from || "/";
+                navigate(redirectTo, { replace: true });
+            }
+        } catch (err) {
+            console.error(err);
+            setError("Server error. Please try again.");
         }
     };
-
 
     return (
         <div className="login-page">

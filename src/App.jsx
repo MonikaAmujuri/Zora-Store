@@ -43,6 +43,7 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* USER */}
+      
       <Route path="/" element={<UserLayout />}>
         <Route index element={<Home />} />
         <Route path="/profile" element={<Profile />} />
@@ -90,6 +91,14 @@ function App() {
           </AdminRoute>
         }
       >
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
         <Route index element={<AdminDashboard />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="products" element={<AdminPanel />} />
@@ -99,6 +108,7 @@ function App() {
         <Route path="/admin/reviews" element={<AdminReviews />} />
         <Route path="settings" element={<AdminSettings />} />
       </Route>
+      
 
     </Routes>
   );

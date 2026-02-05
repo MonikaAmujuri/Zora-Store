@@ -1,27 +1,15 @@
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AdminContext";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function UserRoute({ children }) {
-  const { role } = useAuth();
-  const location = useLocation();
+  const { user, loading } = useAuth();
 
-  // ❌ Not logged in
-  if (!role) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-        state={{ from: location.pathname }}
-      />
-    );
+  if (loading) return null;
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
   }
 
-  // ❌ Admin should not checkout
-  if (role === "admin") {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
-
-  // ✅ Logged-in user
   return children;
 }
 

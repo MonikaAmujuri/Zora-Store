@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AdminContext";
+import { useAuth } from "../../context/AuthContext";
 import "./AdminHeader.css";
 
 function AdminHeader({ title = "Admin Dashboard" }) {
@@ -8,7 +8,7 @@ function AdminHeader({ title = "Admin Dashboard" }) {
 
   const handleLogout = () => {
     logout();
-    navigate("/", { replace: true }); // 👈 USER HOME
+    navigate("/login", { replace: true });
   };
 
   return (

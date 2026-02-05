@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getProducts } from "../../utils/productStorage";
+import { useAuth } from "../../context/AuthContext";
 import { FiHeart } from "react-icons/fi";
 import "./ProductDetails.css";
 
@@ -17,7 +18,7 @@ function ProductDetails() {
   const [comment, setComment] = useState("");
 
   /* AUTH */
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const { user } = useAuth();
 
   /* LOAD PRODUCT */
   useEffect(() => {
@@ -45,32 +46,29 @@ function ProductDetails() {
         )
       : product.price;
 
-  /* ADD TO CART */
-  const addToCart = () => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    const existing = cart.find((item) => item.id === product._id);
-
-    let updated;
-    if (existing) {
-      updated = cart.map((item) =>
-        item.id === product.id
-          ? { ...item, qty: item.qty + qty }
-          : item
-      );
-    } else {
-      updated = [
-        ...cart,
-        {
-          ...product,
-          qty,
-          finalPrice,
-        },
-      ];
+  /* ADD TO CART (MongoDB) */
+  const addToCart = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
     }
 
-    localStorage.setItem("cart", JSON.stringify(updated));
-    window.dispatchEvent(new Event("cartUpdated"));
+    try {
+      await fetch("http://localhost:5000/api/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user._id,
+          productId: product._id,
+          quantity: qty,
+        }),
+      });
+
+      // optional: cart badge refresh
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      console.error("Add to cart failed", error);
+    }
   };
 
   /* SUBMIT REVIEW */

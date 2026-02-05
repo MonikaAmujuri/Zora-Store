@@ -86,6 +86,27 @@ router.put("/:id/status", async (req, res) => {
   }
 });
 
+    /* CANCEL ORDER */
+router.put("/cancel/:orderId", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.orderId,
+      { status: "Cancelled" },
+      { new: true }
+    );
 
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json({
+      message: "Order cancelled successfully",
+      order,
+    });
+  } catch (err) {
+    console.error("CANCEL ORDER ERROR:", err);
+    res.status(500).json({ message: "Failed to cancel order" });
+  }
+});
 
 export default router;

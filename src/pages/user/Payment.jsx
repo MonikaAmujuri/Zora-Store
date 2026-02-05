@@ -1,69 +1,137 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useEffect } from "react";
 import CheckoutSteps from "../../components/user/CheckoutSteps";
 import { createOrder } from "../../services/orderApi";
+import { useAuth } from "../../context/AuthContext"
 import "./Payment.css";
 
 function Payment() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  const address = JSON.parse(localStorage.getItem("selectedAddress"));
+  const [cart, setCart] = useState([]);
+  const [total, setTotal] = useState(0);
   const [selectedPayment, setSelectedPayment] = useState("");
 
 
-  const adminSettings = JSON.parse(
-  localStorage.getItem("adminSettings")
-);
+  const address = JSON.parse(
+    localStorage.getItem("selectedAddress")
+  );
+  if (!address) {
+    return (
+      <div className="payment-page">
+        <CheckoutSteps step={3} />
+        <p style={{ padding: "20px" }}>
+          No address selected. Please go back and select an address.
+        </p>
+      </div>
+    );
+  }
 
-const payments = adminSettings?.payments || {
-  cod: false,
-  upi: false,
-  card: false,
+  useEffect(() => {
+  if (!user?._id) return;
+
+  fetch(`http://localhost:5000/api/cart/${user._id}`)
+    .then(res => res.json())
+    .then(data => {
+      const items = data.items || [];
+
+      setCart(items);
+
+      const calculatedTotal = items.reduce(
+        (sum, item) => sum + item.finalPrice * item.qty,
+        0
+      );
+
+      setTotal(calculatedTotal);
+    });
+}, [user]);
+
+  const payments = {
+  cod: true,
+  upi: true,
+  card: true,
 };
-
-
-  /* TOTAL CALCULATION */
-  const total = cart.reduce(
-  (sum, item) => sum + item.finalPrice * item.qty,
-  0
-);
-
 
   /* PLACE ORDER */
 
 const placeOrder = async () => {
-  if (!address || cart.length === 0) {
-    alert("Missing address or cart");
+  console.log("PAYMENT PAYLOAD:", {
+  userId: user._id,
+  method: selectedPayment.toUpperCase(),
+  amount: total,
+});
+  if (!address || cart.length === 0 || !selectedPayment) {
+    alert("Please select address and payment method");
     return;
   }
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-
-  const newOrder = {
-    userEmail: user.email,
-    items: cart.map(item => ({
-      productId: item._id,
-      name: item.name,
-      image: item.image,
-      price: item.price,
-      finalPrice: item.finalPrice,
-      discount: item.discount,
-      qty: item.qty,
-    })),
-    address,
-    total,
-    paymentMethod: "COD",
-  };
-
   try {
-    const savedOrder = await createOrder(newOrder);
+    /* 1️⃣ CREATE PAYMENT */
+    const paymentRes = await fetch(
+      "http://localhost:5000/api/payment/create",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user._id,
+          method: selectedPayment.toUpperCase(),
+          amount: total,
+          transactionId:
+            selectedPayment === "cod"
+              ? null
+              : Date.now().toString(),
+        }),
+      }
+    );
 
-    localStorage.removeItem("cart");
-    window.dispatchEvent(new Event("cartUpdated"));
+    const payment = await paymentRes.json();
+    if (!paymentRes.ok) throw new Error("Payment failed");
 
-    navigate("/order-success");
+    /* 2️⃣ CREATE ORDER */
+    const newOrder = {
+  userEmail: user.email, // ✅ REQUIRED FIELD
+  items: cart.map(item => ({
+    productId: item.id,
+    name: item.name,
+    image: item.image,
+    price: item.price,
+    finalPrice: item.finalPrice,
+    discount: item.discount,
+    qty: item.qty,
+  })),
+  address: {
+    name: address.name,
+    phone: address.phone,
+    street: address.street,
+    city: address.city,
+    pincode: address.pincode,
+  },
+  total,
+  paymentMethod: selectedPayment.toUpperCase(),
+};
+    await createOrder(newOrder);
+    console.log("CLEARING CART FOR USER:", user._id);
+
+    /* 3️⃣ CLEAR CART (MongoDB) */
+await fetch("http://localhost:5000/api/cart/clear", {
+  method: "DELETE",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ userId: user._id }),
+});
+
+/* 4️⃣ CLEAR LOCAL STORAGE CART */
+localStorage.removeItem("cart");
+localStorage.removeItem("selectedAddress");
+
+/* 5️⃣ REFRESH CART BADGE */
+window.dispatchEvent(new Event("cartUpdated"));
+
+/* 6️⃣ SUCCESS */
+navigate("/order-success");
   } catch (err) {
+    console.error(err);
     alert("Order failed");
   }
 };
@@ -162,7 +230,11 @@ const placeOrder = async () => {
   )}
       </div>
 
-      <button className="place-order-btn" onClick={placeOrder}>
+      <button
+        className="place-order-btn"
+        onClick={placeOrder}
+        disabled={!selectedPayment}
+      >
         Place Order
       </button>
     </div>

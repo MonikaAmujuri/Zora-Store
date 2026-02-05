@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiHeart } from "react-icons/fi";
+import { useAuth } from "../context/AuthContext";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import "./SareeListing.css";
 
@@ -23,66 +24,45 @@ function SareeListing() {
   const [priceRange, setPriceRange] = useState([0, 50000]);
   const [selectedColors, setSelectedColors] = useState([]);
 
+  const { user } = useAuth();
+
+  const getFinalPrice = (price, discount = 0) => { 
+    if (!discount || discount <= 0) return price; 
+    return Math.round(price - (price * discount) / 100);
+  };
 
 
-
-  const getFinalPrice = (price, discount = 0) => {
-  if (!discount || discount <= 0) return price;
-  return Math.round(price - (price * discount) / 100);
-};
-
-  const addToCart = (product) => {
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-  const discount = product.discount || 0;
-  const finalPrice =
-    discount > 0
-      ? Math.round(product.price - (product.price * discount) / 100)
-      : product.price;
-
-  const existing = cart.find(item => item.id === product._id);
-
-  let updatedCart;
-
-  if (existing) {
-    updatedCart = cart.map(item =>
-      item.id === product._id
-        ? { ...item, qty: item.qty + (quantities[product._id] || 1) }
-        : item
-    );
-  } else {
-    updatedCart = [
-      ...cart,
-      {
-        ...product,
-        price: Number(product.price),
-        discount,
-        finalPrice,
-        qty: quantities[product._id] || 1,
-      },
-    ];
+  const addToCart = async (product) => {
+  if (!user) {
+    navigate("/login");
+    return;
   }
 
-  localStorage.setItem("cart", JSON.stringify(updatedCart));
-  window.dispatchEvent(new Event("cartUpdated"));
+  const quantity = quantities[product._id] || 1;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/cart/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user._id,
+        productId: product._id,
+        quantity,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      console.error("Add to cart failed:", err);
+      return;
+    }
+
+    // refresh cart badge
+    window.dispatchEvent(new Event("cartUpdated"));
+  } catch (error) {
+    console.error("Add to cart error:", error);
+  }
 };
-
-
-  const increaseQty = (id) => {
-    setQuantities(prev => ({
-      ...prev,
-      [id]: (prev[id] || 1) + 1
-    }));
-  };
-
-  const decreaseQty = (id) => {
-    setQuantities(prev => ({
-      ...prev,
-      [id]: Math.max(1, (prev[id] || 1) - 1)
-    }));
-  };
-
-
 
   /* ❤️ WISHLIST STATE (TOP LEVEL – REQUIRED) */
   const [wishlist, setWishlist] = useState(() => {

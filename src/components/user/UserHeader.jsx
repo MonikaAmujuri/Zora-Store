@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { FiSearch, FiX, FiHeart, FiShoppingCart, FiUser, FiChevronDown } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AdminContext";
+import { useAuth } from "../../context/AuthContext";
 import "./UserHeader.css";
 
 function UserHeader() {
@@ -12,15 +12,8 @@ function UserHeader() {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role;
-  const token = localStorage.getItem("token");
-  const logout = () => {
-  localStorage.removeItem("user");
-  localStorage.removeItem("token");
-  navigate("/");
-};
-  
+  const { user, logout } = useAuth();
+
   const navigate = useNavigate();
 
   const handleSearch = (value) => {
@@ -53,21 +46,41 @@ function UserHeader() {
     };
   }, []);
 
-  const updateCartCount = () => {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-    setCartCount(totalQty);
+  const fetchCartCount = async () => {
+    if (!user?._id) {
+      setCartCount(0);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/cart/${user._id}`
+      );
+      const data = await res.json();
+
+      const count =
+        data.items?.reduce((sum, item) => sum + item.qty, 0) || 0;
+
+      setCartCount(count);
+    } catch (err) {
+      console.error("Cart count error", err);
+    }
   };
 
   useEffect(() => {
-    updateCartCount();
+  const refreshBadge = () => {
+    fetch(`http://localhost:5000/api/cart/${user._id}`)
+      .then(res => res.json())
+      .then(data => setCartCount(data.items.length));
+  };
 
-    window.addEventListener("cartUpdated", updateCartCount);
-    return () => {
-      window.removeEventListener("cartUpdated", updateCartCount);
-    };
-  }, []);
+  refreshBadge();
+  window.addEventListener("cartUpdated", refreshBadge);
 
+  return () => {
+    window.removeEventListener("cartUpdated", refreshBadge);
+  };
+}, [user]);
 
   return (
     <header className="user-header">
@@ -115,14 +128,8 @@ function UserHeader() {
         <div className="header-actions">
 
           {user ? (
-            <div
-              className="account-wrapper"
-              onMouseLeave={() => setOpen(true)}
-            >
-              <button
-                className="account-btn"
-                onClick={() => setOpen(!open)}
-              >
+            <div className="account-wrapper">
+              <button className="account-btn" onClick={() => setOpen(!open)}>
                 <FiUser />
                 <FiChevronDown />
               </button>
@@ -131,34 +138,33 @@ function UserHeader() {
                 <div className="account-dropdown">
                   <p className="user-email">{user.email}</p>
 
-                  {/* USER LINKS */}
-                  {user.role === "user" && (
-                    <>
-                      <Link to="/my-orders">My Orders</Link>
-                      <Link to="/profile">My Profile</Link>
-                    </>
-                  )}
-
-                  {/* ADMIN LINK */}
                   {user.role === "admin" && (
                     <Link to="/admin/dashboard">Admin Dashboard</Link>
                   )}
 
+                  <Link to="/my-orders">My Orders</Link>
+                  <Link to="/profile">My Profile</Link>
+
                   <button
                     className="logout-btn"
-                    onClick={logout}
+                    onClick={() => {
+                      logout();
+                      if (user.role === "admin") {
+                        navigate("/login", { replace: true });
+                      } else {
+                        navigate("/", { replace: true });
+                      }
+                    }}
                   >
                     Logout
                   </button>
+
                 </div>
               )}
             </div>
           ) : (
-            <Link to="/login" className="login-btn">
-              Login
-            </Link>
+            <Link to="/login" className="login-btn">Login</Link>
           )}
-
         </div>
       </div>
     </header>

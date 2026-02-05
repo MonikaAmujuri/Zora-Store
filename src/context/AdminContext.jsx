@@ -16,20 +16,28 @@ export const AuthProvider = ({ children }) => {
   }
 
   // 👤 USER LOGIN
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const login = async (email, password) => {
+  const res = await fetch("http://localhost:5000/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
 
-  const user = users.find(
-    (u) => u.email === email && u.password === password
-  );
-
-  if (user) {
-    setRole("user");
-    localStorage.setItem("role", "user");
-    localStorage.setItem("loggedUser", JSON.stringify(user));
-    return "user";
+  if (!res.ok) {
+    throw new Error("Invalid credentials");
   }
 
-  return null; // ❌ invalid login
+  const data = await res.json();
+
+  // ✅ SAVE
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("user", JSON.stringify(data.user));
+
+  setUser(data.user);
+
+  // ✅ RETURN USER
+  return data.user;
+}
 };
 
   const logout = () => {

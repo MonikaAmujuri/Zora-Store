@@ -1,30 +1,70 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useNavigate} from "react";
 import { fetchUserOrders } from "../../services/orderApi";
+import { useAuth } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
 import UserHeader from "../../components/user/UserHeader";
 import "./MyOrders.css";
 
 function MyOrders() {
     const [orders, setOrders] = useState([]);
-    const user = JSON.parse(localStorage.getItem("loggedUser"));
+    const { user, loading } = useAuth();
+    const navigate = useNavigate;
 
     useEffect(() => {
-        fetchUserOrders(user.email).then(setOrders);
-    }, []);
+    if (loading) return;
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    fetchOrders();
+  }, [user, loading]);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/orders/user/${user.email}`
+      );
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      console.error("Failed to fetch orders", err);
+    }
+  };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
     const cancelOrder = async (orderId) => {
-        await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ status: "Cancelled" }),
-        });
+        if (!window.confirm("Cancel this order?")) return;
 
-        fetchUserOrders(); // refresh list
+        try {
+            const res = await fetch(
+                `http://localhost:5000/api/orders/cancel/${orderId}`,
+                { method: "PUT" }
+            );
+
+            if (!res.ok) {
+                const text = await res.text();
+                console.error("Cancel failed:", text);
+                alert("Cancel API failed");
+                return;
+            }
+
+            const data = await res.json();
+
+            setOrders(prev =>
+                prev.map(o =>
+                    o._id === orderId ? { ...o, status: "Cancelled" } : o
+                )
+            );
+        } catch (err) {
+            console.error("Cancel error:", err);
+            alert("Something went wrong");
+        }
     };
-
-
     return (
         <div className="my-orders-page">
             <UserHeader/>
@@ -65,14 +105,17 @@ function MyOrders() {
                                 <Link to={`/order/${order._id}`} className="view-btn">
                                     View Details →
                                 </Link>
-                                {order.status === "Pending" && (
-                                    <button
-                                        className="cancel-btn"
-                                        onClick={() => cancelOrder(order._id)}
-                                    >
-                                        Cancel Order
-                                    </button>
-                                )}
+                                {order.status === "Pending" && 
+                                   order.status !== "Cancelled" &&
+                                        order.status !== "Delivered" && (
+                                            <button
+                                                className="cancel-btn"
+                                                onClick={() => cancelOrder(order._id)}
+                                            >
+                                                Cancel Order
+                                            </button>
+                                        )
+                                }
                             </div>
 
                         </div>

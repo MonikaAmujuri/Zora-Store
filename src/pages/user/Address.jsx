@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CheckoutSteps from "../../components/user/CheckoutSteps";
+import { useAuth } from "../../context/AuthContext";
 import "./Address.css";
 
 function Address() {
   const navigate = useNavigate();
-
+  const { user } = useAuth();
   const [addresses, setAddresses] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
 
@@ -19,30 +20,46 @@ function Address() {
 
   /* LOAD SAVED ADDRESSES */
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("addresses")) || [];
-    setAddresses(saved);
-    if (saved.length > 0) {
-      setSelectedId(saved[0].id);
-    }
-  }, []);
+  if (!user?._id) return;
+
+  fetch(`http://localhost:5000/api/address/${user._id}`)
+    .then(res => res.json())
+    .then(data => setAddresses(data));
+}, [user]);
+
 
   /* ADD NEW ADDRESS */
-  const addAddress = () => {
-    if (!form.name || !form.street || !form.city || !form.pincode || !form.phone) {
-      alert("Please fill all address fields");
+  const addAddress = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/address/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user._id,
+        name: form.name,
+        street: form.street,
+        city: form.city,
+        pincode: form.pincode,
+        phone: form.phone,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Address save failed:", data);
+      alert("Failed to save address");
       return;
     }
 
-    const newAddress = {
-      id: Date.now(),
-      ...form,
-    };
+    // refresh address list
+    const listRes = await fetch(
+      `http://localhost:5000/api/address/${user._id}`
+    );
+    const list = await listRes.json();
+    setAddresses(list);
 
-    const updated = [...addresses, newAddress];
-    setAddresses(updated);
-    localStorage.setItem("addresses", JSON.stringify(updated));
-    setSelectedId(newAddress.id);
-
+    // reset form
     setForm({
       name: "",
       street: "",
@@ -50,19 +67,23 @@ function Address() {
       pincode: "",
       phone: "",
     });
-  };
+  } catch (err) {
+    console.error("Add address error:", err);
+  }
+};
 
   /* CONTINUE TO PAYMENT */
   const continueToPayment = () => {
-    const selected = addresses.find(a => a.id === selectedId);
-    if (!selected) {
-      alert("Please select an address");
-      return;
-    }
+  const selected = addresses.find(a => a._id === selectedId);
 
-    localStorage.setItem("selectedAddress", JSON.stringify(selected));
-    navigate("/payment");
-  };
+  if (!selected) {
+    alert("Please select an address");
+    return;
+  }
+
+  localStorage.setItem("selectedAddress", JSON.stringify(selected));
+  navigate("/payment");
+};
 
   return (
     <div className="address-page">
@@ -71,11 +92,11 @@ function Address() {
 
       {/* SAVED ADDRESSES */}
       {addresses.map(addr => (
-        <label key={addr.id} className="address-card">
+        <label key={addr._id} className="address-card">
           <input
             type="radio"
-            checked={selectedId === addr.id}
-            onChange={() => setSelectedId(addr.id)}
+            checked={selectedId === addr._id}
+            onChange={() => setSelectedId(addr._id)}
           />
           <div>
             <strong>{addr.name}</strong>
@@ -85,7 +106,6 @@ function Address() {
           </div>
         </label>
       ))}
-
       {/* ADD NEW ADDRESS */}
       <div className="add-address">
         <h3>Add New Address</h3>
