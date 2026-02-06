@@ -362,3 +362,24 @@
   cursor: pointer;
   font-weight: 500;
 }
+.wishlist-btn {
+  color: #999;
+  transition: all 0.2s ease;
+}
+
+.wishlist-btn.active {
+  color: #e63946;
+  transform: scale(1.1);
+}
+.wishlist-btn {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.wishlist-btn.active {
+  color: #e63946;
+  transform: scale(1.1);
+}

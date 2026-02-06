@@ -23,6 +23,7 @@ function SareeListing() {
   const subType = searchParams.get("type"); // subcategory
   const [priceRange, setPriceRange] = useState([0, 50000]);
   const [selectedColors, setSelectedColors] = useState([]);
+  
 
   const { user } = useAuth();
 
@@ -64,10 +65,34 @@ function SareeListing() {
   }
 };
 
-  /* ❤️ WISHLIST STATE (TOP LEVEL – REQUIRED) */
-  const [wishlist, setWishlist] = useState(() => {
-    return JSON.parse(localStorage.getItem("wishlist")) || [];
-  });
+  // ❤️ wishlist state
+const [wishlistIds, setWishlistIds] = useState(new Set());
+const loadWishlistIds = async () => {
+  // IMPORTANT: never block rendering
+  if (!user || !user.token) {
+    setWishlistIds(new Set());
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/wishlist", {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    const ids = new Set(
+      (data.items || []).map((i) => i.product._id)
+    );
+
+    setWishlistIds(ids);
+  } catch (err) {
+    console.error("Wishlist ID load error", err);
+    setWishlistIds(new Set());
+  }
+};
 
   /* LOAD PRODUCTS */
   useEffect(() => {
@@ -78,27 +103,49 @@ function SareeListing() {
 
   loadProducts();
 }, []);
-
+useEffect(() => {
+  loadWishlistIds();
+}, [user]);
 
 
   /* WISHLIST HELPERS */
-  const isWishlisted = (id) =>
-    wishlist.some((item) => item.id === id);
+  const isWishlisted = (productId) => {
+  return wishlistIds.has(productId);
+};
 
-  const toggleWishlist = (product) => {
-    let updated;
+  const toggleWishlist = async (productId) => {
+  if (!user || !user.token) {
+    navigate("/login");
+    return;
+  }
 
-    if (isWishlisted(product._id)) {
-      updated = wishlist.filter((item) => item.id !== product._id);
-    } else {
-      updated = [...wishlist, product];
-    }
+  // 🔥 OPTIMISTIC UI UPDATE
+  setWishlistIds((prev) => {
+    const updated = new Set(prev);
+    updated.has(productId)
+      ? updated.delete(productId)
+      : updated.add(productId);
+    return updated;
+  });
 
-    setWishlist(updated);
-    localStorage.setItem("wishlist", JSON.stringify(updated));
+  try {
+    await fetch("http://localhost:5000/api/wishlist/toggle", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({ productId }),
+    });
+
+    // 🔔 sync header badge
     window.dispatchEvent(new Event("wishlistUpdated"));
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-  };
+
 
   /* FILTER PRODUCTS */
   let filteredProducts = [...products];
@@ -315,9 +362,9 @@ if (type === "croptops" && croptopsFilter !== "all") {
           <div className="product-card" key={p._id}>
             {/* ❤️ Wishlist */}
             <button
-              className={`wishlist-btn ${isWishlisted(p._id) ? "active" : ""
+              className={`wishlist-btn ${wishlistIds.has(p._id) ? "active" : ""
                 }`}
-              onClick={() => toggleWishlist(p)}
+              onClick={() => toggleWishlist(p._id)}
             >
               <FiHeart />
             </button>

@@ -27,24 +27,35 @@ function UserHeader() {
   };
 
   // 🔁 Read wishlist count
-  const updateWishlistCount = () => {
-    const wishlist =
-      JSON.parse(localStorage.getItem("wishlist")) || [];
-    setWishlistCount(wishlist.length);
+  const fetchWishlistCount = async () => {
+  if (!user || !user.token) {
+    setWishlistCount(0);
+    return;
+  }
+
+  const res = await fetch(
+    "http://localhost:5000/api/wishlist/count",
+    {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    }
+  );
+
+  const data = await res.json();
+  setWishlistCount(data.count);
+};
+
+useEffect(() => {
+  fetchWishlistCount();
+
+  const handler = () => fetchWishlistCount();
+  window.addEventListener("wishlistUpdated", handler);
+
+  return () => {
+    window.removeEventListener("wishlistUpdated", handler);
   };
-
-  useEffect(() => {
-    updateWishlistCount();
-
-    // listen for updates from other components
-    window.addEventListener("storage", updateWishlistCount);
-    window.addEventListener("wishlistUpdated", updateWishlistCount);
-
-    return () => {
-      window.removeEventListener("storage", updateWishlistCount);
-      window.removeEventListener("wishlistUpdated", updateWishlistCount);
-    };
-  }, []);
+}, [user]);
 
   const fetchCartCount = async () => {
     if (!user?._id) {
@@ -68,17 +79,21 @@ function UserHeader() {
   };
 
   useEffect(() => {
-  const refreshBadge = () => {
-    fetch(`http://localhost:5000/api/cart/${user._id}`)
-      .then(res => res.json())
-      .then(data => setCartCount(data.items.length));
+  if (!user?._id) {
+    setCartCount(0);
+    return;
+  }
+
+  fetchCartCount();
+
+  const handleCartUpdate = () => {
+    fetchCartCount();
   };
 
-  refreshBadge();
-  window.addEventListener("cartUpdated", refreshBadge);
+  window.addEventListener("cartUpdated", handleCartUpdate);
 
   return () => {
-    window.removeEventListener("cartUpdated", refreshBadge);
+    window.removeEventListener("cartUpdated", handleCartUpdate);
   };
 }, [user]);
 

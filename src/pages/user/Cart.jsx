@@ -15,6 +15,8 @@ function Cart() {
 useEffect(() => {
   if (!user?._id) return;
 
+  
+
   fetch(`http://localhost:5000/api/cart/${user._id}`)
     .then(res => res.json())
     .then(data => {
@@ -73,6 +75,8 @@ const totalSaved = totalOriginal - totalFinal;
 
   setCart(prev => prev.filter(item => item.id !== productId));
 };
+
+
 
   return (
     <div>

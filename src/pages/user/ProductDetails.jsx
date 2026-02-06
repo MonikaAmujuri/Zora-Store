@@ -29,22 +29,32 @@ function ProductDetails() {
 
   /* LOAD REVIEWS */
   useEffect(() => {
-    const stored =
-      JSON.parse(localStorage.getItem(`reviews_${id}`)) || [];
-    setReviews(stored);
-  }, [id]);
+  const loadReviews = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/reviews/${id}`
+      );
+      const data = await res.json();
+      setReviews(data);
+    } catch (err) {
+      console.error("Failed to load reviews", err);
+    }
+  };
 
-  if (!product) {
-    return <p className="empty-text">Product not found</p>;
-  }
+  loadReviews();
+}, [id]);
 
   /* PRICE LOGIC */
-  const finalPrice =
-    product.discount > 0
-      ? Math.round(
-          product.price - (product.price * product.discount) / 100
-        )
-      : product.price;
+  if (!product) {
+  return <p className="empty-text">Product not found</p>;
+}
+
+const finalPrice =
+  product.discount > 0
+    ? Math.round(
+        product.price - (product.price * product.discount) / 100
+      )
+    : product.price;
 
   /* ADD TO CART (MongoDB) */
   const addToCart = async () => {
@@ -72,7 +82,8 @@ function ProductDetails() {
   };
 
   /* SUBMIT REVIEW */
-  const handleSubmitReview = () => {
+  /* SUBMIT REVIEW (MongoDB) */
+const handleSubmitReview = async () => {
   if (!user) {
     alert("Please login to add a review");
     return;
@@ -80,16 +91,40 @@ function ProductDetails() {
 
   if (!comment.trim()) return;
 
-  const newReview = {
-    id: Date.now(),
-    productId: product.id,
-    productName: product.name,
-    productImage: product.image,
-    user: user.name || user.email,
-    rating,
-    comment,
-    createdAt: new Date().toISOString(),
-  };
+  try {
+    const res = await fetch(
+      "http://localhost:5000/api/reviews/add",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({
+          productId: product._id,
+          rating,
+          comment,
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.message || "Failed to add review");
+      return;
+    }
+
+    // reload reviews
+    const updated = await fetch(
+      `http://localhost:5000/api/reviews/${id}`
+    );
+    setReviews(await updated.json());
+
+    setComment("");
+    setRating(5);
+  } catch (error) {
+    console.error("Review submit failed", error);
+  }
 
   // 1️⃣ PRODUCT-SPECIFIC REVIEWS
   const productReviews =
@@ -217,7 +252,7 @@ function ProductDetails() {
         )}
 
         {reviews.map((r) => (
-          <div className="review-item" key={r.id}>
+          <div className="review-item" key={r._id}>
             <strong>{r.user}</strong>
             <div className="stars">
               {"★".repeat(r.rating)}

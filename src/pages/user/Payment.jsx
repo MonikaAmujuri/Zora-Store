@@ -154,7 +154,7 @@ navigate("/order-success");
       <div className="summary-card">
         <h3>Order Summary</h3>
         {cart.map(item => (
-          <p key={item._id}>
+          <p key={item.id}>
             {item.name} × {item.qty} — ₹ {item.price * item.qty}
           </p>
         ))}

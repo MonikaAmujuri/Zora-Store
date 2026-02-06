@@ -8,21 +8,21 @@ export const AuthProvider = ({ children }) => {
 
   // hydrate auth once
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("user");
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
+  if (storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
 
-    setLoading(false);
-  }, []);
+  setLoading(false);
+}, []);
 
   const login = (userData, token) => {
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", token);
-    setUser(userData);
-  };
+  const userWithToken = { ...userData, token };
+
+  setUser(userWithToken);
+  localStorage.setItem("user", JSON.stringify(userWithToken));
+};
 
   // ✅ NEW: sync updated profile
   const updateUser = (updatedUser) => {

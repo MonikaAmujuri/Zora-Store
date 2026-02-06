@@ -11,6 +11,8 @@ import cartRoutes from "./routes/cartRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import wishlistRoutes from "./routes/wishlist.js";
+import reviewRoutes from "./routes/review.js";
+
 
 dotenv.config();
 
@@ -34,7 +36,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/wishlist", wishlistRoutes);
-
+app.use("/api/reviews", reviewRoutes);
 
 
 /* DB CONNECT */

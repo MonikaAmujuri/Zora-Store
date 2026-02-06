@@ -67,14 +67,12 @@ router.post("/login", async (req, res) => {
 
     // 5️⃣ Send response
     res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  token
+});
 
   } catch (error) {
     console.error("LOGIN ERROR 👉", error);

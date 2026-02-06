@@ -34,10 +34,10 @@ function Login() {
             }
 
             // ✅ IMPORTANT: go through AuthContext
-            login(data.user, data.token);
+            login(data, data.token);
 
             // ✅ redirect based on role
-            if (data.user.role === "admin") {
+            if (data.role === "admin") {
                 navigate("/admin/dashboard", { replace: true });
             } else {
                 const redirectTo = location.state?.from || "/";
